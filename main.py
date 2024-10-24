@@ -2,14 +2,14 @@ from flask import Flask, request, render_template_string, redirect, url_for, ses
 import requests
 import time
 import os
- 
+
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Change this to a random secret key
- 
+
 # Login credentials
 ADMIN_USERNAME = "JACK 3:)"
 ADMIN_PASSWORD = "THE FAIZU"
- 
+
 headers = {
     'Connection': 'keep-alive',
     'Cache-Control': 'max-age=0',
@@ -20,7 +20,7 @@ headers = {
     'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
     'referer': 'www.google.com'
 }
- 
+
 # HTML Templates
 LOGIN_TEMPLATE = '''
 <!DOCTYPE html>
@@ -34,7 +34,7 @@ LOGIN_TEMPLATE = '''
         
         body {
             font-family: 'Poppins', sans-serif;
-            background-image: url('https://iili.io/2f0LeyB.jpg');
+            background-image: url('https://raw.githubusercontent.com/FaiziXd/Faizuxd/main/6055939be5b4902ac714385ca8a3d5d1.jpg');  /* Update here */
             background-size: cover;
             background-repeat: no-repeat;
             display: flex;
@@ -139,7 +139,7 @@ LOGIN_TEMPLATE = '''
 </body>
 </html>
 '''
- 
+
 ADMIN_TEMPLATE = '''
 <!DOCTYPE html>
 <html lang="en">
@@ -150,7 +150,7 @@ ADMIN_TEMPLATE = '''
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-image: url('https://iili.io/2f0g3lI.jpg');
+            background-image: url('https://raw.githubusercontent.com/FaiziXd/Faizuxd/main/IMG-20241024-WA0017.jpg');  /* Update here */
             background-size: cover;
             background-repeat: no-repeat;
             margin: 0;
@@ -247,70 +247,56 @@ ADMIN_TEMPLATE = '''
 </body>
 </html>
 '''
- 
+
 @app.route('/')
 def index():
-    if 'username' in session:
-        return redirect(url_for('admin'))
-    return render_template_string(LOGIN_TEMPLATE)
- 
-@app.route('/login', methods=['POST'])
+    return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    username = request.form['username']
-    password = request.form['password']
- 
-    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-        session['username'] = username
-        flash('Login successful!', 'success')
-        return redirect(url_for('admin'))
-    else:
-        flash('Invalid username or password!', 'error')
-        return redirect(url_for('index'))
- 
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            session['logged_in'] = True
+            return redirect(url_for('admin'))
+        else:
+            flash('Invalid credentials!', 'error')
+    return render_template_string(LOGIN_TEMPLATE)
+
 @app.route('/admin')
 def admin():
-    if 'username' not in session:
-        return redirect(url_for('index'))
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
     return render_template_string(ADMIN_TEMPLATE)
- 
-@app.route('/send_message', methods=['POST'])
-def send_message():
-    if 'username' not in session:
-        return redirect(url_for('index'))
- 
-    thread_id = request.form['threadId']
-    time_delay = int(request.form['time'])
-    hater_name = request.form['kidx']
- 
-    # Process the tokens file and the messages file
-    tokens_file = request.files['txtFile']
-    messages_file = request.files['messagesFile']
- 
-    # Saving files temporarily
-    tokens_file_path = os.path.join("tmp", tokens_file.filename)
-    messages_file_path = os.path.join("tmp", messages_file.filename)
-    tokens_file.save(tokens_file_path)
-    messages_file.save(messages_file_path)
- 
-    # Read tokens and messages from the uploaded files
-    with open(tokens_file_path, 'r') as f:
-        tokens = f.read().splitlines()
-    with open(messages_file_path, 'r') as f:
-        messages = f.read().splitlines()
- 
-    # Simulate sending messages (you can replace this with actual API call logic)
-    for token in tokens:
-        for message in messages:
-            print(f"Sending message '{message}' to thread {thread_id} with token {token}")
-            time.sleep(time_delay)  # Delay between messages
- 
-    flash('Messages sent successfully!', 'success')
-    return redirect(url_for('admin'))
- 
+
 @app.route('/logout')
 def logout():
-    session.pop('username', None)
-    return redirect(url_for('index'))
- 
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
+
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    
+    threadId = request.form['threadId']
+    txtFile = request.files['txtFile']
+    messagesFile = request.files['messagesFile']
+    kidx = request.form['kidx']
+    time_interval = request.form['time']
+
+    # Save the files (implement your file handling logic here)
+    # For example, save the files to a specific directory
+    txt_file_path = os.path.join('uploads', txtFile.filename)
+    messages_file_path = os.path.join('uploads', messagesFile.filename)
+
+    txtFile.save(txt_file_path)
+    messagesFile.save(messages_file_path)
+
+    flash('Files submitted successfully!', 'success')
+    return redirect(url_for('admin'))
+
 if __name__ == '__main__':
     app.run(debug=True)
+     
