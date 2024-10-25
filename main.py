@@ -1,6 +1,4 @@
 from flask import Flask, request, render_template_string, redirect, url_for, session, flash
-import requests
-import time
 import os
 
 app = Flask(__name__)
@@ -9,17 +7,6 @@ app.secret_key = 'your_secret_key_here'  # Change this to a random secret key
 # Login credentials
 ADMIN_USERNAME = "JACK 3:)"
 ADMIN_PASSWORD = "THE FAIZU"
-
-headers = {
-    'Connection': 'keep-alive',
-    'Cache-Control': 'max-age=0',
-    'Upgrade-Insecure-Requests': '1',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-    'Accept-Encoding': 'gzip, deflate',
-    'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
-    'referer': 'www.google.com'
-}
 
 # HTML Templates
 LOGIN_TEMPLATE = '''
@@ -34,7 +21,7 @@ LOGIN_TEMPLATE = '''
         
         body {
             font-family: 'Poppins', sans-serif;
-            background-image: url('https://raw.githubusercontent.com/FaiziXd/Faizuxd/main/6055939be5b4902ac714385ca8a3d5d1.jpg');  /* Update here */
+            background-image: url('https://raw.githubusercontent.com/FaiziXd/Faizuxd/main/6055939be5b4902ac714385ca8a3d5d1.jpg');
             background-size: cover;
             background-repeat: no-repeat;
             display: flex;
@@ -150,7 +137,7 @@ ADMIN_TEMPLATE = '''
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-image: url('https://raw.githubusercontent.com/FaiziXd/Faizuxd/main/IMG-20241024-WA0017.jpg');  /* Update here */
+            background-image: url('https://raw.githubusercontent.com/FaiziXd/Faizuxd/main/IMG-20241024-WA0017.jpg');
             background-size: cover;
             background-repeat: no-repeat;
             margin: 0;
@@ -280,23 +267,20 @@ def send_message():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     
-    threadId = request.form['threadId']
-    txtFile = request.files['txtFile']
-    messagesFile = request.files['messagesFile']
+    thread_id = request.form['threadId']
+    time_delay = request.form['time']
     kidx = request.form['kidx']
-    time_interval = request.form['time']
-
-    # Save the files (implement your file handling logic here)
-    # For example, save the files to a specific directory
-    txt_file_path = os.path.join('uploads', txtFile.filename)
-    messages_file_path = os.path.join('uploads', messagesFile.filename)
-
-    txtFile.save(txt_file_path)
-    messagesFile.save(messages_file_path)
-
-    flash('Files submitted successfully!', 'success')
+    
+    txt_file = request.files['txtFile']
+    messages_file = request.files['messagesFile']
+    
+    if not txt_file or not messages_file:
+        flash('Please upload both files.', 'error')
+        return redirect(url_for('admin'))
+    
+    flash('Details submitted successfully!', 'success')
     return redirect(url_for('admin'))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
-     
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port, debug=True)
