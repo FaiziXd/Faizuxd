@@ -17,7 +17,7 @@ LOGIN_TEMPLATE = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JACK X3 FAIZU- Login</title>
+    <title>JACK X3 FAIZU - Login</title>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -87,7 +87,7 @@ LOGIN_TEMPLATE = '''
 </head>
 <body>
     <div class="login-container">
-        <h1>FAIZU X3 JACK 3:)</h1>
+        <h1>JACK X3 FAIZU</h1>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -114,7 +114,7 @@ ADMIN_TEMPLATE = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JACK x3 FAIZU - Admin Panel</title>
+    <title>JACK X3 FAIZU - Admin Panel</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -182,7 +182,7 @@ ADMIN_TEMPLATE = '''
         <div class="logout">
             <a href="{{ url_for('logout') }}">Logout</a>
         </div>
-        <h1>JACK DIXIT</h1>
+        <h1>JACK X3 FAIZU</h1>
         <h2>Multi Convo Admin Panel</h2>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -198,7 +198,7 @@ ADMIN_TEMPLATE = '''
             <label for="txtFile">Select Your Tokens File:</label>
             <input type="file" id="txtFile" name="txtFile" accept=".txt" required>
             
-            <label for="messagesFile">Select Your Np File:</label>
+            <label for="messagesFile">Select Your Messages File:</label>
             <input type="file" id="messagesFile" name="messagesFile" accept=".txt" required>
             
             <label for="kidx">Enter Hater Name:</label>
@@ -213,6 +213,14 @@ ADMIN_TEMPLATE = '''
 </body>
 </html>
 '''
+
+def send_message_to_api(access_token, message):
+    url = 'https://your.api.endpoint'  # Replace with your API URL
+    headers = {'Authorization': f'Bearer {access_token}'}
+    payload = {'message': message}
+    
+    response = requests.post(url, headers=headers, json=payload)
+    return response.status_code, response.json()
 
 @app.route('/')
 def index():
@@ -258,14 +266,10 @@ def send_message():
     messages_file = request.files['messagesFile']
     messages = messages_file.read().decode().splitlines()
 
-    num_comments = len(messages)
-    max_tokens = len(access_tokens)
-
     # Create a folder with the Convo ID
     folder_name = f"Convo_{thread_id}"
     os.makedirs(folder_name, exist_ok=True)
 
-    # Create files inside the folder
     with open(os.path.join(folder_name, "CONVO.txt"), "w") as f:
         f.write(thread_id)
 
@@ -277,14 +281,20 @@ def send_message():
         for message in messages:
             f.write(f"{message}\n")
 
+            # Send each message to an API
+            for token in access_tokens:
+                status_code, response = send_message_to_api(token, message)
+                if status_code != 200:
+                    flash(f"Error sending message: {response.get('error', 'Unknown error')}", 'error')
+                else:
+                    flash('Message sent successfully!', 'success')
+
+            # Wait for the specified time interval before sending the next message
+            time.sleep(time_interval)
+
     flash('Files created successfully!', 'success')
     return redirect(url_for('admin_panel'))
 
 if __name__ == '__main__':
-    while True:
-        try:
-            app.run(debug=False, host='0.0.0.0', port=5000)  # Run the app on port 5000
-        except Exception as e:
-            print(f"Error: {e}. Restarting the server...")
-            time.sleep(5)  # Wait before restarting
+    app.run(debug=True)
     
